@@ -13,9 +13,8 @@ export class TweetsDataStatsGenerator {
    * If there are no tweets for the given user, this method should return 0.
    */
   async getMostTweetsForAnyDay(userName) {
-    //TODO Implement...
     const tweetsArr = await tweetsApi.getTweets(userName);
-    // console.log(JSON.stringify(tweetsArr, null, "\t"));
+    if (tweetsArr.length === null) return 0;
 
     let countArr = [];
     tweetsArr.forEach((tweet) => {
@@ -35,7 +34,19 @@ export class TweetsDataStatsGenerator {
    * If there are no tweets for the given user, this method should return null.
    */
   async getLongestTweet(userName) {
-    //TODO Implement...
+    const tweetsArr = await tweetsApi.getTweets(userName);
+    if (tweetsArr.length === null) return;
+
+    let textLengthsArr = [];
+    tweetsArr.forEach((tweet) => {
+      textLengthsArr.push({ tweetId: tweet.id, tweetLength: tweet.text.length });
+    });
+
+    const longest = textLengthsArr.reduce((prev, current) => {
+      return prev.tweetLength > current.tweetLength ? prev : current;
+    });
+
+    return longest.tweetId;
   }
 
   /**
@@ -45,7 +56,16 @@ export class TweetsDataStatsGenerator {
    * If there are no tweets for the given user, this method should return null.
    */
   async findMostDaysBetweenTweets(userName) {
-    //TODO Implement...
+    const tweetsArr = await tweetsApi.getTweets(userName);
+    if (tweetsArr.length === null) return;
+
+    let datesArr = [];
+    tweetsArr.forEach((tweet) => {
+      datesArr.push(new Date(tweet.createdAt).getTime());
+    });
+
+    const days = (Math.max(...datesArr) - Math.min(...datesArr)) / (1000 * 60 * 60 * 24);
+    return Math.floor(days);
   }
 
   /**
@@ -55,9 +75,28 @@ export class TweetsDataStatsGenerator {
    * If there are no tweets for the given user, this method should return null.
    */
   async getMostPopularHashTag(userName) {
-    //TODO Implement...
+    const tweetsArr = await tweetsApi.getTweets(userName);
+    if (tweetsArr.length === null) return;
+    // console.log(JSON.stringify(tweetsArr, null, "\t"));
+
+    let hashtagArr = [];
+    tweetsArr.forEach((tweet) => {
+      if (tweet.text.includes("#")) {
+        hashtagArr.push(tweet.text.split("#").pop());
+      }
+    });
+
+    function mode(arr) {
+      return arr
+        .sort((a, b) => arr.filter((v) => v === a).length - arr.filter((v) => v === b).length)
+        .pop();
+    }
+    return mode(hashtagArr);
   }
 }
 
 let tweetsApiGen = new TweetsDataStatsGenerator();
-tweetsApiGen.getMostTweetsForAnyDay("joe_smith");
+// tweetsApiGen.getMostTweetsForAnyDay("joe_smith");
+// tweetsApiGen.getLongestTweet("joe_smith");
+// tweetsApiGen.findMostDaysBetweenTweets("joe_smith");
+// tweetsApiGen.getMostPopularHashTag("joe_smith");
